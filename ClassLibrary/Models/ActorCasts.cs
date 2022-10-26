@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsoleLab2.Models
+namespace Cinema.Models
 {
     public class ActorCasts
     {
