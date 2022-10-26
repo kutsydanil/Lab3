@@ -50,18 +50,39 @@ namespace Cinema.Services
             return _table.Take(_rowsCount);
         }
 
+        public IEnumerable<T> GetAll(string cacheKey)
+        {
+            IEnumerable<T> elements = null;
+            Type type = typeof(T);
+            if (!_cache.TryGetValue(cacheKey, out elements))
+            {
+                elements = _table.Take(_rowsCount).ToList();
+                if (elements != null)
+                {
+                    _cache.Set(cacheKey, elements,
+                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+                }
+                else
+                {
+                    throw new Exception($"Any problems with cache _rowCount element in table {type.Name}");
+                }
+            }
+            return elements;
+
+        }
+
         public T GetById(int id)
         {
             T obj = null;
             Type type = typeof(T);
-
             if (!_cache.TryGetValue(id, out obj))
             {
                 obj = _table.Find(id);
-                var obj_id = type.GetField("id")?.GetValue(obj);
                 if (obj != null)
                 {
-                    _cache.Set(obj_id, obj, new MemoryCacheEntryOptions
+                    //var any = type.GetField("Id");
+                    //var obj_id = any?.GetValue(obj);
+                    _cache.Set(type.Name + id, obj, new MemoryCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_seconds)
                     });

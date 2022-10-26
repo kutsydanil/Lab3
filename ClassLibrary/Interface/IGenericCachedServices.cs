@@ -12,6 +12,8 @@ namespace Cinema.Interface
 
         IEnumerable<T> GetAll();
 
+        IEnumerable<T> GetAll(string cacheKey);
+
         T GetById(int id);
 
     }

@@ -12,10 +12,5 @@ namespace Cinema.Models
         public int HallNumber { get; set; }
         public int MaxPlaceNumber { get; set; }
 
-        public override string ToString()
-        {
-            return $"{Id} --- {HallNumber} -- {MaxPlaceNumber}";
-        }
-
     }
 }

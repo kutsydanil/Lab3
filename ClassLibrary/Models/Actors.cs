@@ -22,10 +22,5 @@ namespace Cinema.Models
             this.Name = Name;  
             this.SurName = SurName;
         }
-
-        public override string ToString()
-        {
-            return $"{Id} ----- {Name} ----- {SurName} ----- {MiddleName}";
-        }
     }
 }
