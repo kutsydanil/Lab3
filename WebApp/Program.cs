@@ -50,6 +50,7 @@ namespace WebApp
                 responseString += "<LI><A href='/Staffs'>Сотрудники</A></LI>";
                 responseString += "<LI><A href='/searchform1'>Форма #1 для таблицы жанры</A></LI>";
                 responseString += "<LI><A href='/searchform2'>Форма #2 для таблицы жанры</A></LI>";
+                responseString += "<LI><A href='/info'>Информация о клиенте</A></LI>";
                 responseString += "</UL></BODY></HTML>";
                 return context.Response.WriteAsync(responseString);
             });
