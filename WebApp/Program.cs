@@ -17,6 +17,8 @@ namespace WebApp
             ConfigureServices(services, connectionString);
             var app = builder.Build();
 
+            app.Map("/searchform1", SearchForm1ForGenres);
+            app.Map("/searchform2", SearchForm2ForGenres);
             app.Map("/Actors", TableActors);
             app.Map("/ActorCasts", TableActorCasts);
             app.Map("/CinemaHalls", TableCinemaHalls);
@@ -29,6 +31,29 @@ namespace WebApp
             app.Map("/StaffCasts", TableStaffCasts);
             app.Map("/Staffs", TableStaffs);
             app.Map("/info", Info);
+            app.Run((context) =>
+            {
+                string responseString = "<HTML><TITLE>Главная</TITLE>" +
+                "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
+                "<BODY>";
+                responseString += "<UL>";
+                responseString += "<LI><A href='/'>Главная</A></LI>";
+                responseString += "<LI><A href='/Actors'>Aктеры</A></LI>";
+                responseString += "<LI><A href='/ActorCasts'>Актерские группы</A></LI>";
+                responseString += "<LI><A href='/CinemaHalls'>Залы кинотеатра</A></LI>";
+                responseString += "<LI><A href='/CountryProductions'>Страна-производитель</A></LI>";
+                responseString += "<LI><A href='/Films'>Фильмы</A></LI>";
+                responseString += "<LI><A href='/Genres'>Жанры</A></LI>";
+                responseString += "<LI><A href='/ListEvents'>Список мероприятий</A></LI>";
+                responseString += "<LI><A href='/Places'>Места</A></LI>";
+                responseString += "<LI><A href='/StaffCasts'>Группы сотрудников</A></LI>";
+                responseString += "<LI><A href='/Staffs'>Сотрудники</A></LI>";
+                responseString += "<LI><A href='/searchform1'>Форма #1 для таблицы жанры</A></LI>";
+                responseString += "<LI><A href='/searchform2'>Форма #2 для таблицы жанры</A></LI>";
+                responseString += "</UL></BODY></HTML>";
+                return context.Response.WriteAsync(responseString);
+            });
+
             app.Run();
         }
 
@@ -368,12 +393,133 @@ namespace WebApp
                 await context.Response.WriteAsync(responseString);
             });
         }
+        private static void SearchForm1ForGenres(IApplicationBuilder app)
+        {
+            app.UseSession();
+            app.Run(async context =>
+            {
+                GenericCachedClassService<Genres> cachedClassService = context.RequestServices.GetRequiredService<GenericCachedClassService<Genres>>();
+                var genres = cachedClassService.GetAll("Genres20");
+                string keyInputField = "FieldGenre";
+                string keySelectField = "SelectFieldGenre";
+                string keyRadioFiled = "RadioFiledGenre";
 
-        private static void SearchFormForFilms(IApplicationBuilder app)
+                string responseString = "<HTML><HEAD><TITLE>Форма №1(Сессия)</TITLE></HEAD>" + "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/><BODY>" +
+                "<FORM>" +
+                "<BR><A href='/'>На главную</A></BR>" +
+                "<BR><INPUT type='submit' value='Сохранить в сессию'/></BR>" +
+                $"<BR><INPUT type='text' name='{keyInputField}' value='{context.Session.GetString(keyInputField)}'/><BR/>" +
+                $"<BR><SELECT name='{keySelectField}'><option>default</options></BR>";
+
+                foreach (var genre in genres)
+                {
+                    if ($"{genre.Name}" == context.Session.GetString(keySelectField))
+                    {
+                        responseString += $"<option selected>{genre.Name}</option>";
+                    }
+                    else
+                    {
+                        responseString += $"<option>{genre.Name}</option>";
+                    }
+                }
+                responseString += "</SELECT></BR>";
+                responseString += "<BR>";
+                foreach (var genre in genres)
+                {
+                    if ($"{genre.Name}" == context.Session.GetString(keyRadioFiled))
+                    {
+                        responseString += $"<p><INPUT type='radio' checked value='{genre.Name}' name='{keyRadioFiled}'/>{genre.Name}</p>";
+                    }
+                    else
+                    {
+                        responseString += $"<p><INPUT type='radio' value='{genre.Name}' name='{keyRadioFiled}'/>{genre.Name}</p>";
+                    }
+                }
+                responseString += "</BR>";
+                string genreField = context.Request.Query[keyInputField];
+                string genreSelectedOne = context.Request.Query[keySelectField];
+                string genreSelected = context.Request.Query[keyRadioFiled];
+
+                if (genreField is not null)
+                {
+                    context.Session.SetString(keyInputField, genreField);
+                }
+
+                if (genreSelectedOne is not null)
+                {
+                    context.Session.SetString(keySelectField, genreSelectedOne);
+                }
+
+                if (genreSelected is not null)
+                {
+                    context.Session.SetString(keyRadioFiled, genreSelected);
+                }
+                responseString += "</BODY></HTML>";
+                await context.Response.WriteAsync(responseString);
+            });
+        }
+
+        private static void SearchForm2ForGenres(IApplicationBuilder app)
         {
             app.Run(async context =>
             {
-                string responseString = ;
+                GenericCachedClassService<Genres> cachedClassService = context.RequestServices.GetRequiredService<GenericCachedClassService<Genres>>();
+                var genres = cachedClassService.GetAll("Genres20");
+                string keyInputField = "FieldGenre";
+                string keySelectField = "SelectFieldGenre";
+                string keyRadioFiled = "RadioFiledGenre";
+                
+                string responseString = "<HTML><HEAD><TITLE>Форма №2(Куки)</TITLE></HEAD>" + "<META http-equiv='Content-Type' content='text/html; charset=utf-8'/><BODY>" +
+                "<FORM>" +
+                "<BR><A href='/'>На главную</A></BR>" + 
+                "<BR><INPUT type='submit' value='Сохранить в Cookies'/></BR>" +
+                $"<BR><INPUT type='text' name='{keyInputField}' value='{context.Request.Cookies[keyInputField]}'/><BR/>" + 
+                $"<BR><SELECT name='{keySelectField}'><option>default</options></BR>";
+
+                foreach(var genre in genres)
+                {
+                    if ($"{genre.Name}" == context.Request.Cookies[keySelectField])
+                    {
+                        responseString += $"<option selected>{genre.Name}</option>";
+                    }
+                    else
+                    {
+                        responseString += $"<option>{genre.Name}</option>";
+                    }
+                }
+                responseString += "</SELECT></BR>";
+                responseString += "<BR>";
+                foreach (var genre in genres)
+                {
+                    if ($"{genre.Name}" == context.Request.Cookies[keyRadioFiled])
+                    {
+                        responseString += $"<p><INPUT type='radio' checked value='{genre.Name}' name='{keyRadioFiled}'/>{genre.Name}</p>";
+                    }
+                    else
+                    {
+                        responseString += $"<p><INPUT type='radio' value='{genre.Name}' name='{keyRadioFiled}'/>{genre.Name}</p>";
+                    }
+                }
+                responseString += "</BR>";
+                string genreField = context.Request.Query[keyInputField];
+                string genreSelectedOne = context.Request.Query[keySelectField];
+                string genreSelected = context.Request.Query[keyRadioFiled];
+
+                if(genreField is not null)
+                {
+                    context.Response.Cookies.Append(keyInputField, genreField);
+                }
+
+                if (genreSelectedOne is not null)
+                {
+                    context.Response.Cookies.Append(keySelectField, genreSelectedOne);
+                }
+
+                if (genreSelected is not null)
+                {
+                    context.Response.Cookies.Append(keyRadioFiled, genreSelected);
+                }
+                responseString += "</BODY></HTML>";
                 await context.Response.WriteAsync(responseString);
             });
         }
